@@ -1,0 +1,39 @@
+# Installs Java
+FROM openjdk:8-jdk-alpine
+    
+### Install needed packages
+RUN apk update && \
+    apk upgrade && \
+    apk --update add \
+        git \
+        ruby \
+        build-base \
+        libstdc++ \
+        tzdata \
+        bash \
+        ttf-dejavu \
+        freetype \
+        fontconfig \
+        curl \
+        apache-ant
+
+# Set Sencha Environment
+ENV cmdVersion 6.5.3.6
+ENV PJS_HOME=/usr/lib/phantomjs
+
+RUN curl http://cdn.sencha.com/cmd/${cmdVersion}/no-jre/SenchaCmd-${cmdVersion}-linux-amd64.sh.zip -o /tmp/sencha.zip && \
+    unzip /tmp/sencha.zip -d /tmp  && \
+    unlink /tmp/sencha.zip  && \
+    chmod o+x /tmp/SenchaCmd-${cmdVersion}-linux-amd64.sh && \
+    /tmp/SenchaCmd-${cmdVersion}-linux-amd64.sh -q -dir /opt/Sencha/Cmd/${cmdVersion} && \
+    unlink /tmp/SenchaCmd-${cmdVersion}-linux-amd64.sh && \
+    chmod -R 777 /opt/Sencha
+
+ENV PATH="/opt/Sencha/Cmd:${PATH}"
+
+RUN cd /tmp && \
+    curl -Ls "https://github.com/israelroldan/docker-sencha-cmd/raw/phantomjs-2.1.1/dockerized-phantomjs-2.1.1.tar.gz" | tar xz -C / && \
+    ln -s "$PJS_HOME/bin/phantomjs" /usr/bin/phantomjs && \
+    rm /opt/Sencha/Cmd/${cmdVersion}/bin/linux-x64/phantomjs/phantomjs && \
+    ln -s "$PJS_HOME/bin/phantomjs" /opt/Sencha/Cmd/${cmdVersion}/bin/linux-x64/phantomjs/phantomjs && \
+    PS1='[sencha-extjs] \W\$ '
